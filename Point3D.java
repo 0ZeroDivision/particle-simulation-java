@@ -27,7 +27,8 @@ public class Point3D
 	}
 	public double getDistTo(Point3D other)
 	{
-		return Math.sqrt(Math.pow(x-other.x,2)+Math.pow(y-other.y,2)+Math.pow(z-other.z,2));
+		double dx=x-other.x, dy=y-other.y, dz=z-other.z;
+		return Math.sqrt(dx*dx+dy*dy+dz*dz);
 	}
 	public double getDistToCenter()
 	{
@@ -61,12 +62,14 @@ public class Point3D
 		Point3D out=rot.multiply(new Matrix(new Vect3D(p,this))).plus(cent).getPoint3D();
 		x=out.x;
 		y=out.y;
+		z=out.z;
 	}
 	public void rotate(Point3D p, Matrix rot)
 	{
 		Point3D out=getRotated(p,rot);
 		x=out.x;
 		y=out.y;
+		z=out.z;
 	}
 	public Point3D getRotated(Point3D p, Matrix rot)
 	{
