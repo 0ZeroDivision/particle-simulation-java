@@ -28,6 +28,7 @@ public class Link3D
 	{
 		Vect3D direc = new Vect3D(a.center,b.center);
 		double dist=direc.getMag();
+		if(dist<1e-30) return;
 		direc.multiply(1.0/dist);
 		direc.multiply((dist-eD)*FORCECONST/a.MASS);
 		a.accel=a.accel.addVect(direc);
@@ -38,6 +39,7 @@ public class Link3D
 	{
 		Vect3D direc = (new Vect3D(a.center)).addVect(k1).subtractVect((new Vect3D(b.center)).addVect(k2));
 		double dist=direc.getMag();
+		if(dist<1e-30) return;
 		direc.multiply(1.0/dist);
 		direc.multiply((eD-dist)*FORCECONST/a.MASS);
 		a.k[kn][0]=a.k[kn][0].addVect(direc.times(timeInterval));
@@ -47,7 +49,9 @@ public class Link3D
 	public void forceRigid()
 	{
 		Vect3D direc = new Vect3D(a.center,b.center);
-		direc.multiply(1/direc.getMag());
+		double dist=direc.getMag();
+		if(dist<1e-30) return;
+		direc.multiply(1.0/dist);
 		direc.multiply(getDisplacement()*.9);
 		a.vect=a.vect.addVect(direc);
 		direc.multiply(-1);
