@@ -59,11 +59,12 @@ public class Vect3D
 	}
 	public double getMagSquared()
 	{
-	  return x*x+y*y;
+	  return x*x+y*y+z*z;
 	}
 	public void normalize()
 	{
 		mag=getMag();
+		if(mag<1e-30) return;
 		x/=mag;
 		y/=mag;
 		z/=mag;
@@ -71,6 +72,7 @@ public class Vect3D
 	public Vect3D getNormalized()
 	{
 		mag=getMag();
+		if(mag<1e-30) return new Vect3D(0,0,0);
 		return new Vect3D(x/mag,y/mag,z/mag);
 	}
 
@@ -107,16 +109,17 @@ public class Vect3D
 
 	public Vect3D addVect(Vect3D v)
 	{
-		return new Vect3D(new Point3D(0,0,0),new Point3D(x+v.x,y+v.y,z+v.z));
+		return new Vect3D(x+v.x,y+v.y,z+v.z);
 	}
 	public Vect3D subtractVect(Vect3D v)
 	{
-		return new Vect3D(new Point3D(0,0,0),new Point3D(x-v.x,y-v.y,z-v.z));
+		return new Vect3D(x-v.x,y-v.y,z-v.z);
 	}
 
 	public void setMag(double m)
 	{
 		double mG=getMag();
+		if(mG<1e-30) return;
 		x=x*m/mG;
 		y=y*m/mG;
 		z=z*m/mG;
@@ -129,15 +132,15 @@ public class Vect3D
 
 	public Vect3D crossProduct(Vect3D b)
 	{
-		return new Vect3D(new Point3D(0,0,0),new Point3D(y*b.z-z*b.y,z*b.x-x*b.z,x*b.y-y*b.x));
+		return new Vect3D(y*b.z-z*b.y,z*b.x-x*b.z,x*b.y-y*b.x);
 	}
 	public Vect3D getXZPerp1()
 	{
-		return new Vect3D(new Point3D(0,0,0),new Point3D(-z,y,x));
+		return new Vect3D(-z,y,x);
 	}
 	public Vect3D getXZPerp2()
 	{
-		return new Vect3D(new Point3D(0,0,0),new Point3D(z,y,-x));
+		return new Vect3D(z,y,-x);
 	}
 	public String toString()
 	{
