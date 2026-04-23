@@ -176,4 +176,7 @@ All source files are in the root directory:
 | `SelectMenu.java` | Mutually exclusive selection menu |
 | `ActionMenu.java` / `ActionButton.java` | Action button menu |
 
+## Credits
 
+James Bounds https://github.com/jaymz07/particle-simulation-java
+TeaVM https://github.com/konsoletyper/teavm
