@@ -179,4 +179,5 @@ All source files are in the root directory:
 ## Credits
 
 James Bounds https://github.com/jaymz07/particle-simulation-java
+
 TeaVM https://github.com/konsoletyper/teavm
