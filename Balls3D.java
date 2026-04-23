@@ -6,9 +6,29 @@ import java.util.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
+import javax.swing.*;
 
 public class Balls3D extends Applet implements MouseListener, MouseMotionListener, KeyListener
 {
+	public static void main(String[] args)
+	{
+		JFrame frame = new JFrame("3D Particle Simulation");
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+		Balls3D applet = new Balls3D();
+		applet.setPreferredSize(new Dimension(1120, 600));
+
+		frame.add(applet);
+		frame.pack();
+		frame.setLocationRelativeTo(null);
+		frame.setResizable(true);
+		frame.setVisible(true);
+
+		applet.init();
+		applet.start();
+		applet.requestFocusInWindow();
+	}
+
 	int randTries=2000,PATHINTERVAL=12,CHARGEITERATIONS=50,FOLLOWDIST=500,UNIVERSEMODE=0;
 	double DOWNGRAVCONST=1,IVEL=2,MINDIST=0,BONDDIST=100,STATIONARYMASS=10,CHARGEINTERVAL=60,TOPHEIGHT=800,TOPRADIUS=200,TOPANGVEL=0.15,TOPANG=Math.PI/12,ANGVEL=.01,AIRRES=0;
 
@@ -181,10 +201,12 @@ public class Balls3D extends Applet implements MouseListener, MouseMotionListene
 	  for(VSphere s: spheres)
 	  {
 	    Vect3D cStep=(s.k[0][1].addVect(s.k[1][1].times(2)).addVect(s.k[2][1].times(2)).addVect(s.k[3][1])).times(1.0/6);
-	    if(!s.STATIONARY&&!Double.isNaN(cStep.getMagSquared()))
+	    double cMagSq=cStep.getMagSquared();
+	    if(!s.STATIONARY&&!Double.isNaN(cMagSq)&&!Double.isInfinite(cMagSq))
 	      s.center=new Point3D((new Vect3D(s.center)).addVect(cStep));
 	    Vect3D vstep = (s.k[0][0].addVect(s.k[1][0].times(2)).addVect(s.k[2][0].times(2)).addVect(s.k[3][0])).times(1.0/6);
-	    if(!Double.isNaN(vstep.getMagSquared()))
+	    double vMagSq=vstep.getMagSquared();
+	    if(!Double.isNaN(vMagSq)&&!Double.isInfinite(vMagSq))
 	      s.vect=s.vect.addVect(vstep);
 	    if(DRAWSPHERES)
 	      s.lines=s.getSphere(unit).lines;
@@ -593,12 +615,14 @@ public class Balls3D extends Applet implements MouseListener, MouseMotionListene
 
 		double timeStepFactor=Math.pow(10,menu.numBars.get(10).value);
 		if(VARIABLETIMESTEP) {
+			timeInterval=timeStepFactor;
 			if(maxVel>0.0)
-				timeInterval=Math.min(timeStepFactor,2*timeStepFactor/maxVel);
+				timeInterval=Math.min(timeInterval,2*timeStepFactor/maxVel);
 			if(maxAccel>0.0)
 				timeInterval=Math.min(timeInterval,18*timeStepFactor/maxAccel);
 			if(maxAccelPerp>0.0)
 				timeInterval=Math.min(timeInterval,4.5*timeStepFactor/maxAccelPerp);
+			timeInterval=Math.max(timeInterval,timeStepFactor*0.001);
 		}
 		else
 			timeInterval=timeStepFactor;               
