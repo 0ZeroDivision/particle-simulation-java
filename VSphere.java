@@ -81,15 +81,16 @@ public class VSphere extends Sphere
 	}
 	public void move(double tI)
 	{
-		//System.out.println(accel);
-		if(!STATIONARY&&!Double.isNaN(accel.getMagSquared()))
+		if(!STATIONARY&&!Double.isNaN(accel.getMagSquared())&&!Double.isInfinite(accel.getMagSquared()))
 		  accelerate(tI);
 		if(RANDOM)
 		{
-			vect=vect.addVect(new Vect3D(new Point3D(0,0,0),new Point3D((2*Math.random()-1)*RANDMAG,(2*Math.random()-1)*RANDMAG,(2*Math.random()-1)*RANDMAG)));
+			vect=vect.addVect(new Vect3D((2*Math.random()-1)*RANDMAG,(2*Math.random()-1)*RANDMAG,(2*Math.random()-1)*RANDMAG));
 		}
 		if(!STATIONARY)
 		{
+		  if(Double.isNaN(vect.x)||Double.isNaN(vect.y)||Double.isNaN(vect.z))
+		    vect=new Vect3D(0,0,0);
 		  path.add(center);
 		  if(path.size()>PATHSIZE)
 			  path.remove(0);
@@ -188,7 +189,8 @@ public class VSphere extends Sphere
 
 	public double getDist(VSphere s)
 	{
-		return Math.sqrt(Math.pow(s.center.x-center.x,2)+Math.pow(s.center.y-center.y,2)+Math.pow(s.center.z-center.z,2));
+		double dx=s.center.x-center.x, dy=s.center.y-center.y, dz=s.center.z-center.z;
+		return Math.sqrt(dx*dx+dy*dy+dz*dz);
 	}
 	public double getDist(VSphere s,Vect3D kThis,Vect3D kThat)
 	{
@@ -260,9 +262,13 @@ public class VSphere extends Sphere
 	public void gravitate(VSphere s)
 	{
 		Vect3D direc = new Vect3D(center,s.center);
-		double dSqr=direc.getMagSquared(),dist=Math.sqrt(dSqr);
-		direc.multiply(1/dist);
-		direc.multiply(GRAVCONST*s.MASS/(dSqr));
+		double dSqr=direc.getMagSquared();
+		double minDist=RADIUS+s.RADIUS;
+		dSqr=Math.max(dSqr,minDist*minDist);
+		double dist=Math.sqrt(dSqr);
+		if(dist<1e-30) return;
+		direc.multiply(1.0/dist);
+		direc.multiply(GRAVCONST*s.MASS/dSqr);
 		accel=accel.addVect(direc);
 		direc.multiply(-MASS/s.MASS);
 		s.accel=s.accel.addVect(direc);
@@ -271,8 +277,10 @@ public class VSphere extends Sphere
 	{
 		Vect3D direc = getVectTo(s,kThis,kThat);
 		double dSqr=direc.getMagSquared();
+		double minDist=RADIUS+s.RADIUS;
+		dSqr=Math.max(dSqr,minDist*minDist);
 		direc.normalize();
-		direc.multiply(GRAVCONST*s.MASS/(dSqr));
+		direc.multiply(GRAVCONST*s.MASS/dSqr);
 		k[kn][0]=k[kn][0].addVect(direc.times(timeInt));
 		direc.multiply(-MASS/s.MASS);
 		s.k[kn][0]=s.k[kn][0].addVect(direc.times(timeInt));
@@ -282,8 +290,13 @@ public class VSphere extends Sphere
 	public void staticForce(VSphere s)
 	{
 		Vect3D direc = new Vect3D(center,s.center);
-		direc.multiply(-1/direc.getMag());
-		direc.multiply(CHARGECONST*s.CHARGE*CHARGE/(getDistSquared(s))*MASS);
+		double dSqr=getDistSquared(s);
+		double minDist=RADIUS+s.RADIUS;
+		dSqr=Math.max(dSqr,minDist*minDist);
+		double dist=Math.sqrt(dSqr);
+		if(dist<1e-30) return;
+		direc.multiply(-1.0/dist);
+		direc.multiply(CHARGECONST*s.CHARGE*CHARGE/dSqr*MASS);
 		accel=accel.addVect(direc);
 		direc.multiply(-MASS/s.MASS);
 		s.accel=s.accel.addVect(direc);
@@ -292,17 +305,24 @@ public class VSphere extends Sphere
 	{
 		Vect3D direc = getVectTo(s,kThis,kThat);
 		double dSqr=direc.getMagSquared();
+		double minDist=RADIUS+s.RADIUS;
+		dSqr=Math.max(dSqr,minDist*minDist);
 		direc.normalize();
 		direc.multiply(-CHARGECONST*s.CHARGE*CHARGE/(dSqr*MASS));
 		k[kn][0]=k[kn][0].addVect(direc.times(timeInt));
 		direc.multiply(-MASS/s.MASS);
 		s.k[kn][0]=s.k[kn][0].addVect(direc.times(timeInt));
 	}
-	public Vect3D staticForceTo(VSphere s)   //used for field lines
+	public Vect3D staticForceTo(VSphere s)
 	{
 		Vect3D direc = new Vect3D(center,s.center);
-		direc.multiply(-1/direc.getMag());
-		direc.multiply(CHARGECONST*s.CHARGE*CHARGE/(getDistSquared(s)*MASS));
+		double dSqr=getDistSquared(s);
+		double minDist=RADIUS+s.RADIUS;
+		dSqr=Math.max(dSqr,minDist*minDist);
+		double dist=Math.sqrt(dSqr);
+		if(dist<1e-30) return new Vect3D(0,0,0);
+		direc.multiply(-1.0/dist);
+		direc.multiply(CHARGECONST*s.CHARGE*CHARGE/(dSqr*MASS));
 		return direc;
 	}
 	public void airRes(double b)
@@ -345,20 +365,26 @@ public class VSphere extends Sphere
 	}
 	public void magForce(VSphere s)
 	{
+		double dist=getDist(s);
+		double minDist=RADIUS+s.RADIUS;
+		double dSqr=Math.max(dist*dist,minDist*minDist);
+		dist=Math.sqrt(dSqr);
+		if(dist<1e-30) return;
+
 		Vect3D direc= new Vect3D(center,s.center);
-		Vect3D vel=new Vect3D(new Point3D(0,0,0),new Point3D(vect.x,vect.y,vect.z));
-		vel.multiply(CHARGE*s.CHARGE*PERMEABILITY/Math.pow(getDist(s),2));
-		direc.multiply(1/direc.getMag());
+		Vect3D vel=new Vect3D(vect.x,vect.y,vect.z);
+		vel.multiply(CHARGE*s.CHARGE*PERMEABILITY/dSqr);
+		direc.multiply(1.0/dist);
 		Vect3D field = vel.crossProduct(s.vect.crossProduct(direc));
-		field.multiply(1/MASS);
+		field.multiply(1.0/MASS);
 		accel=accel.addVect(field);
 
 		direc= new Vect3D(s.center,center);
-		vel=new Vect3D(new Point3D(0,0,0),new Point3D(s.vect.x,s.vect.y,s.vect.z));
-		vel.multiply(CHARGE*s.CHARGE*s.PERMEABILITY/Math.pow(getDist(s),2));
-		direc.multiply(1/direc.getMag());
+		vel=new Vect3D(s.vect.x,s.vect.y,s.vect.z);
+		vel.multiply(CHARGE*s.CHARGE*s.PERMEABILITY/dSqr);
+		direc.multiply(1.0/dist);
 		field = vel.crossProduct(vect.crossProduct(direc));
-		field.multiply(1/s.MASS);
+		field.multiply(1.0/s.MASS);
 		s.accel=s.accel.addVect(field);
 
 	}
@@ -366,19 +392,24 @@ public class VSphere extends Sphere
 	{
 		Vect3D direc=getVectTo(s,kxThis,kxThat);
 		double dist=direc.getMag();
-		Vect3D vel=(new Vect3D(new Point3D(vect.x,vect.y,vect.z))).addVect(kvThis);
-		vel.multiply(CHARGE*s.CHARGE*PERMEABILITY/dist/dist);
-		direc.multiply(1/dist);
+		double minDist=RADIUS+s.RADIUS;
+		double dSqr=Math.max(dist*dist,minDist*minDist);
+		dist=Math.sqrt(dSqr);
+		if(dist<1e-30) return;
+
+		Vect3D vel=new Vect3D(vect.x,vect.y,vect.z).addVect(kvThis);
+		vel.multiply(CHARGE*s.CHARGE*PERMEABILITY/dSqr);
+		direc.multiply(1.0/dist);
 		Vect3D direc2=new Vect3D(direc);
 		Vect3D field = vel.crossProduct(s.vect.addVect(kvThat).crossProduct(direc));
-		field.multiply(1/MASS);
+		field.multiply(1.0/MASS);
 		k[kn][0]=k[kn][0].addVect(field.times(timeInt));
 
 		direc= direc2.times(-1);
-		vel=(new Vect3D(new Point3D(0,0,0),new Point3D(s.vect.x,s.vect.y,s.vect.z))).addVect(kvThat);
-		vel.multiply(CHARGE*s.CHARGE*s.PERMEABILITY/dist/dist);
+		vel=new Vect3D(s.vect.x,s.vect.y,s.vect.z).addVect(kvThat);
+		vel.multiply(CHARGE*s.CHARGE*s.PERMEABILITY/dSqr);
 		field = vel.crossProduct(vect.addVect(kvThis).crossProduct(direc));
-		field.multiply(1/s.MASS);
+		field.multiply(1.0/s.MASS);
 		s.k[kn][0]=s.k[kn][0].addVect(field.times(timeInt));
 
 	}
