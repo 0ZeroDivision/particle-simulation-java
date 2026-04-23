@@ -3,7 +3,7 @@
 A real-time 3D physics simulation featuring gravitational attraction, electrostatic forces, magnetic fields, spring-bonded links, collisions, and more -- all rendered with a custom graphic enginer software built on Java AWT.
 
 Originally written as a Java Applet, now runnable as a standalone desktop application.
-Forked from https://github.com/jaymz07/particle-simulation-java written by James Bounds
+Forked from https://github.com/jaymz07/particle-simulation-java written by James Bounds.
 
 **Try it out in a browser! https://particle-simulation-java.vercel.app/**
 
