@@ -5,6 +5,8 @@ A real-time 3D physics simulation featuring gravitational attraction, electrosta
 Originally written as a Java Applet, now runnable as a standalone desktop application.
 Forked from https://github.com/jaymz07/particle-simulation-java written by James Bounds
 
+**Try it out in a browser! https://particle-simulation-java.vercel.app/**
+
 ## Features
 
 - **Newtonian Gravity** between all particles (inverse-square law)
